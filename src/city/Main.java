@@ -120,24 +120,24 @@ public class Main extends Canvas implements ActionListener{
 		frame.pack();
 		frame.setVisible(true);
 
-//		ArrayList<Integer> tx = new ArrayList<Integer>();
-//		ArrayList<Integer> ty = new ArrayList<Integer>();
-//		canvas.addMouseListener(new MouseAdapter() {
-//			public void mousePressed(MouseEvent e) {
-//				tx.add(e.getX());
-//				ty.add(e.getY());
-//				System.out.println();
-//				for (int i=0; i<tx.size(); i++) {
-//					System.out.print(tx.get(i)+", ");
-//				}
-//				System.out.println();
-//				for (int i=0; i<ty.size(); i++) {
-//					System.out.print(ty.get(i)+", ");
-//				}
-//				System.out.println();
-//			}
-//		});
-//
+/*		ArrayList<Integer> tx = new ArrayList<Integer>();
+		ArrayList<Integer> ty = new ArrayList<Integer>();
+		canvas.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				tx.add(e.getX());
+				ty.add(e.getY());
+				System.out.println();
+				for (int i=0; i<tx.size(); i++) {
+					System.out.print(tx.get(i)+", ");
+				}
+				System.out.println();
+				for (int i=0; i<ty.size(); i++) {
+					System.out.print(ty.get(i)+", ");
+				}
+				System.out.println();
+			}
+		});
+*/
 		Scanner sc = new Scanner(System.in);
 
 		String fileName = "tokyo.txt";
@@ -152,7 +152,6 @@ public class Main extends Canvas implements ActionListener{
 			BufferedReader in = new BufferedReader(fileReader);
 			int c = 0;
 			int [][] graph = new int [200][200];
-			System.out.println(x_coord.length+" "+y_coord.length);
 			while((line = in.readLine()) != null) {
 				String[] arr = line.trim().split(",");
 				int node = Integer.parseInt(arr[0].split(" ")[0]);
@@ -184,6 +183,7 @@ public class Main extends Canvas implements ActionListener{
 				setTrafficLights(graph, traffic, start_time, orig_graph);
 				Congestion vehicle = dijkstra(n, queue, dist, graph);
 				drawn_cars.add(new Car(vehicle, x_coord[a], y_coord[a]));
+				System.out.println(vehicle.distance/1000+" km, "+vehicle.distance%1000+" m");
 				System.out.println(distanceToTime(vehicle.distance, 8.333));
 				System.out.print(a);
 				while (!vehicle.route.isEmpty()) {
@@ -276,23 +276,27 @@ public class Main extends Canvas implements ActionListener{
 	}
 
 	public void paint(Graphics g) {
-		Toolkit t=Toolkit.getDefaultToolkit();  
+		Toolkit t = Toolkit.getDefaultToolkit();  
 		Image map = t.getImage("map_visual.jpg");  
 
 		g.drawImage(map, 0, 0,this);  
-		g.setColor(Color.RED);
+		g.setColor(Color.BLACK);
 
 		for (int i=0; i<x_coord.length; i++) {
-			g.fillOval(x_coord[i]-13, y_coord[i]-13, 25, 25);
+			g.drawOval(x_coord[i]-13, y_coord[i]-13, 25, 25);
 		}
-
+		
+		g.setColor(Color.RED);
+		
 		for (int car=0; car<drawn_cars.size(); car++) {
-			g.drawRect(drawn_cars.get(car).getCurrentX(), drawn_cars.get(car).getCurrentY(), 15, 15);
-			drawn_cars.get(car).move();
+			g.fillRect(drawn_cars.get(car).getCurrentX()-7, drawn_cars.get(car).getCurrentY()-7, 15, 15);
 		}
 	}
 
 	public void actionPerformed(ActionEvent e) {
+		for (int car=0; car<drawn_cars.size(); car++) {
+			drawn_cars.get(car).move();
+		}
 		repaint();
 	}
 
