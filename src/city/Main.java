@@ -1,0 +1,299 @@
+package city;
+
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Scanner;
+import java.util.TreeMap;
+
+import javax.swing.JFrame;
+import javax.swing.Timer;
+
+public class Main extends Canvas implements ActionListener{
+
+	Timer tm = new Timer(15, this);
+	private final static int traffic_light_delay = 13;
+	private final static int cycle_length = 120;
+	private final static int [] x_coord = {
+			251, 375, 589, 292, 390, 335, 364, 397, 376, 401, 443, 449, 506, 454, 523, 519, 338, 382, 412, 343, 391, 420, 260, 296, 315, 375, 397, 429, 230, 282, 336, 382, 410, 439, 154, 242, 276, 296, 347, 449, 125, 227, 142, 229, 296, 360, 298, 345, 297, 345, 185, 224, 178, 228, 235, 328, 320, 365, 267, 339, 373, 381, 441, 443, 452, 451, 449, 474, 487, 492, 503, 512, 511, 529, 537, 554, 503, 483, 576, 581, 626, 638, 670, 687, 666, 667, 579, 597, 645, 667, 681, 751, 763, 759, 749, 745, 741, 659, 665, 738, 640, 666, 640, 666, 689, 730, 727, 737, 755, 772, 786, 800, 822, 826, 837, 859, 880, 925, 872, 923, 982, 1018, 1035, 1051, 942, 1001, 945, 992, 840, 773, 827, 844, 843, 877, 905, 910, 909, 917, 862, 887, 960, 1030, 1043, 1109, 1115, 1120, 
+	};
+	private final static int [] y_coord = {
+			148, 92, 117, 213, 149, 202, 189, 180, 214, 212, 170, 210, 195, 305, 289, 223, 270, 265, 262, 319, 310, 309, 306, 334, 343, 357, 352, 344, 354, 370, 366, 394, 395, 381, 441, 435, 413, 454, 447, 434, 480, 494, 521, 517, 498, 484, 541, 540, 594, 600, 615, 615, 679, 648, 685, 690, 717, 712, 828, 831, 674, 636, 595, 636, 706, 748, 800, 536, 601, 637, 727, 764, 816, 604, 726, 819, 552, 443, 212, 265, 203, 266, 205, 255, 308, 362, 599, 672, 572, 656, 562, 299, 332, 366, 468, 556, 655, 717, 811, 823, 88, 66, 147, 110, 95, 215, 162, 133, 180, 153, 252, 222, 194, 338, 286, 254, 208, 155, 303, 220, 152, 222, 289, 340, 410, 387, 477, 479, 561, 666, 830, 620, 665, 726, 622, 665, 720, 753, 830, 839, 810, 582, 767, 629, 714, 749, 
+	};
+	static ArrayList<Car> drawn_cars = new ArrayList<Car>();
+
+	static class Path {
+		int distance;
+		int node;
+		String indicator;
+		Path(int d, int n, String id) {
+			distance = d;
+			node = n;
+			indicator = id;
+		}
+	}
+
+	static class TrafficLight{
+		int cycle;
+		int node;
+		int power;
+		TrafficLight(int c, int n) {
+			cycle = c;
+			node = n;
+			power = c % (cycle_length*2) < cycle_length ? 0:1;
+		}
+	}
+
+	static class Congestion{
+		private int distance;
+		private LinkedList<Integer> route;
+		Congestion(int d, LinkedList<Integer> r) {
+			distance = d;
+			route = r;
+		}
+		public Congestion clone() {
+			return new Congestion(distance, (LinkedList<Integer>) route.clone());
+		}
+		public int getDistance() {
+			return distance;
+		}
+	}
+
+	static class Car{
+		int travelled;
+		Congestion congest;
+		int x;
+		int y;
+		private int curr_x;
+		private int curr_y;
+		Car(Congestion c, int x, int y) {
+			congest = c.clone();
+			curr_x = x;
+			curr_y = y;
+			travelled = 0;
+			x = x_coord[congest.route.get(travelled)];
+			y = y_coord[congest.route.get(travelled)];
+		}
+		private void reset() {
+			x = x_coord[congest.route.get(travelled)];
+			y = y_coord[congest.route.get(travelled)];			
+		}
+		public void move() {
+			curr_x += (x - curr_x)/Math.abs(x - curr_x);
+			curr_y += (y - curr_y)/Math.abs(y - curr_y);
+			if (x == curr_x && y == curr_y) {
+				travelled++;
+				reset();
+			}
+		}
+		public int getCurrentX() {
+			return curr_x;
+		}
+		public int getCurrentY() {
+			return curr_y;
+		}
+		public Congestion getCongestion() {
+			return congest;
+		}
+	}
+
+	public static void main(String[] args) {
+		JFrame frame = new JFrame("City");
+		Canvas canvas = new Main();
+		canvas.setSize(1600, 1600);
+		frame.add(canvas);
+		frame.pack();
+		frame.setVisible(true);
+
+//		ArrayList<Integer> tx = new ArrayList<Integer>();
+//		ArrayList<Integer> ty = new ArrayList<Integer>();
+//		canvas.addMouseListener(new MouseAdapter() {
+//			public void mousePressed(MouseEvent e) {
+//				tx.add(e.getX());
+//				ty.add(e.getY());
+//				System.out.println();
+//				for (int i=0; i<tx.size(); i++) {
+//					System.out.print(tx.get(i)+", ");
+//				}
+//				System.out.println();
+//				for (int i=0; i<ty.size(); i++) {
+//					System.out.print(ty.get(i)+", ");
+//				}
+//				System.out.println();
+//			}
+//		});
+//
+		Scanner sc = new Scanner(System.in);
+
+		String fileName = "tokyo.txt";
+
+		LinkedList<Path> queue = new LinkedList<Path>();
+		ArrayList<TrafficLight> traffic = new ArrayList<TrafficLight>();
+
+		String line = null;
+
+		try {
+			FileReader fileReader = new FileReader(fileName.trim());
+			BufferedReader in = new BufferedReader(fileReader);
+			int c = 0;
+			int [][] graph = new int [200][200];
+			System.out.println(x_coord.length+" "+y_coord.length);
+			while((line = in.readLine()) != null) {
+				String[] arr = line.trim().split(",");
+				int node = Integer.parseInt(arr[0].split(" ")[0]);
+				if (arr[0].split(" ").length > 1 && arr[0].split(" ")[1]=="&") {
+					traffic.add(new TrafficLight((int)(Math.random()*(cycle_length-1)), node));
+				}
+				String[] arr2 = arr[1].trim().split(" ");
+				for (int i=0; i<arr2.length; i++) {
+					graph[node][Integer.parseInt(arr2[i].split("-")[0])] = 
+							Integer.parseInt(arr2[i].split("-")[1]);
+				}
+				c++;
+			}   
+			in.close();
+
+			int [] dist = new int [c];
+			int [][] orig_graph = graph.clone();
+
+			int start_time = (int)(System.currentTimeMillis() / 1000L);
+
+			while (true) {
+				Arrays.fill(dist, Integer.MAX_VALUE);
+				queue.clear();
+				System.out.print("Input departing location\n>>> ");
+				int a = sc.nextInt();
+				System.out.print("Input destination\n>>> ");
+				int n = sc.nextInt();
+				queue.add(new Path(0, a, ""));
+				setTrafficLights(graph, traffic, start_time, orig_graph);
+				Congestion vehicle = dijkstra(n, queue, dist, graph);
+				drawn_cars.add(new Car(vehicle, x_coord[a], y_coord[a]));
+				System.out.println(distanceToTime(vehicle.distance, 8.333));
+				System.out.print(a);
+				while (!vehicle.route.isEmpty()) {
+					System.out.print(" --> "+vehicle.route.remove(vehicle.route.size()-1));
+				}
+				System.out.println();
+			}
+		}
+		catch(FileNotFoundException ex) {
+			System.out.println("Unable to open file '" + fileName + "'");    
+		}
+		catch(IOException ex) {
+			System.out.println("Error reading file '" + fileName + "'");                  
+		}
+
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.out.println("Terminated");
+				System.exit(0);
+			}
+		});
+	}
+
+	private static String distanceToTime(int d, double v) {
+		if (d == -1) {
+			return "Route does not exist";
+		}
+		return Integer.toString((int)((d/v)/60))+" min, "+Integer.toString((int)(d/v)%60)+" sec";
+	}
+
+	private static void setTrafficLights(int [][] graph, ArrayList<TrafficLight> traffic, int start_time, int [][] orig_graph) {
+		int curr_time = (int)(System.currentTimeMillis() / 1000L);
+		for (int i=0; i<traffic.size(); i++) {
+			boolean flag = traffic.get(i).power != ((traffic.get(i).cycle +
+					curr_time - start_time) % (cycle_length*2) < cycle_length ? 0:1);
+			traffic.set(i, new TrafficLight(traffic.get(i).cycle +
+					curr_time - start_time, traffic.get(i).node));
+			if (flag) {
+				for (int j=0; j<graph[traffic.get(i).node].length; j++) {
+					if (graph[traffic.get(i).node][i]>0) {
+						graph[traffic.get(i).node][i] = orig_graph[traffic.get(i).node][i] +
+								((traffic.get(i).cycle % (cycle_length*2) - cycle_length)*traffic_light_delay);
+						if (graph[traffic.get(i).node][i]<=0) {
+							graph[traffic.get(i).node][i] = 1;
+						}
+					}
+					if (graph[i][traffic.get(i).node]>0) {
+						graph[i][traffic.get(i).node] = orig_graph[i][traffic.get(i).node] -
+								(traffic.get(i).cycle % (cycle_length*2) - cycle_length)*traffic_light_delay;
+						if (graph[i][traffic.get(i).node]<=0) {
+							graph[i][traffic.get(i).node] = 1;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private static Congestion dijkstra(int n, LinkedList<Path> queue, int [] dist, int [][] graph) {
+		TreeMap<String, Integer> traceback = new TreeMap<>();
+		int index = 0;
+		while(!queue.isEmpty()) {
+			Path P = queue.pop();
+			int N = P.node;
+			int D = P.distance;
+			String ID = P.indicator;
+			if (D<dist[N]) {
+				dist[N] = D;
+				for (int i=0; i<graph[N].length; i++) {
+					if (graph[N][i]>0) {
+						queue.add(new Path(D+graph[N][i], i, ID+Character.toString((char)((index+32)%127))));
+						traceback.put(ID+Character.toString((char)((index+32)%127)), i);
+						index++;
+					}
+				}
+				if (N == n) {
+					LinkedList<Integer> route = new LinkedList<Integer>();
+					int subsize = ID.length();
+					while (subsize>0) {
+						if (traceback.containsKey(ID.substring(0, subsize))) {
+							route.add(traceback.get(ID.substring(0, subsize)));
+						}
+						subsize--;
+					}
+					return new Congestion(D, route);
+				}
+			}
+		}
+		return new Congestion(-1, new LinkedList<Integer>());
+	}
+
+	public void paint(Graphics g) {
+		Toolkit t=Toolkit.getDefaultToolkit();  
+		Image map = t.getImage("map_visual.jpg");  
+
+		g.drawImage(map, 0, 0,this);  
+		g.setColor(Color.RED);
+
+		for (int i=0; i<x_coord.length; i++) {
+			g.fillOval(x_coord[i]-13, y_coord[i]-13, 25, 25);
+		}
+
+		for (int car=0; car<drawn_cars.size(); car++) {
+			g.drawRect(drawn_cars.get(car).getCurrentX(), drawn_cars.get(car).getCurrentY(), 15, 15);
+			drawn_cars.get(car).move();
+		}
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		repaint();
+	}
+
+}
