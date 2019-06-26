@@ -213,10 +213,10 @@ public class Main extends Canvas implements ActionListener{
 			while (true) {
 				Arrays.fill(dist, Integer.MAX_VALUE);
 				queue.clear();
-				System.out.print("Input departing location\n>>> ");
-				int a = sc.nextInt();
-				System.out.print("Input destination\n>>> ");
-				int n = sc.nextInt();
+				//System.out.print("Input departing location\n>>> ");
+				int a = (int) (Math.random()*145);
+				//System.out.print("Input destination\n>>> ");
+				int n = (int) (Math.random()*145);
 				queue.add(new Path(0, a, ""));
 				setTrafficLights(traffic, start_time, orig_graph);
 				Congestion vehicle = dijkstra(n, queue, dist);
@@ -229,7 +229,11 @@ public class Main extends Canvas implements ActionListener{
 					System.out.print(" ("+vehicle.distance.get(vehicle.distance.size()-i-1)+" m)");					
 				}
 				System.out.println();
-
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		catch(FileNotFoundException ex) {
@@ -335,7 +339,7 @@ public class Main extends Canvas implements ActionListener{
 
 		for (int car=0; car<drawn_cars.size(); car++) {
 			g.setColor(drawn_cars.get(car).getColor());
-			g.fillRect(drawn_cars.get(car).getCurrentX()-7, drawn_cars.get(car).getCurrentY()-7, 15, 15);
+			g.fillOval(drawn_cars.get(car).getCurrentX()-7, drawn_cars.get(car).getCurrentY()-7, 15, 15);
 		}
 
 		for (int car=0; car<drawn_cars.size(); car++) {
@@ -346,7 +350,7 @@ public class Main extends Canvas implements ActionListener{
 		}
 
 		try {
-			Thread.sleep(500);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
