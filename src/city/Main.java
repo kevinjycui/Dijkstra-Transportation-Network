@@ -103,6 +103,12 @@ public class Main extends Canvas implements ActionListener{
 			x = x_coord[congest.route.get(travelled)];
 			y = y_coord[congest.route.get(travelled)];
 			double theta = Math.atan(((double)y - curr_y)/((double)x - curr_x));
+			if (x - curr_x >= 0 && y - curr_y < 0 || x - curr_x >= 0 && y - curr_y > 0) {
+				theta = 0 + theta;
+			}
+			else if (x - curr_x <= 0 && y - curr_y < 0 || x - curr_x < 0 && y - curr_y >= 0) {
+				theta = Math.PI + theta;
+			}
 			double hypoteneuse = Math.sqrt(Math.pow(x - curr_x, 2) + Math.pow(y - curr_y, 2))*5/congest.distance.get(travelled);
 			dx = hypoteneuse*Math.cos(theta);
 			dy = hypoteneuse*Math.sin(theta);
@@ -110,7 +116,7 @@ public class Main extends Canvas implements ActionListener{
 		public boolean move() {
 			curr_x += dx;
 			curr_y += dy;
-			if (travelled>0 && x <= curr_x + limit_velocity && x >= curr_x - limit_velocity && y <= curr_y + limit_velocity && y >= curr_y - limit_velocity) {
+			if (x <= curr_x + limit_velocity && x >= curr_x - limit_velocity && y <= curr_y + limit_velocity && y >= curr_y - limit_velocity) {
 				curr_x = x;
 				curr_y = y;
 				travelled--;
