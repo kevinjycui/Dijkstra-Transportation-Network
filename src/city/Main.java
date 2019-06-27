@@ -215,8 +215,10 @@ public class Main extends Canvas implements ActionListener{
 				queue.clear();
 				//System.out.print("Input departing location\n>>> ");
 				int a = (int) (Math.random()*145);
+				System.out.println("Departing Location: Block No. "+a);
 				//System.out.print("Input destination\n>>> ");
 				int n = (int) (Math.random()*145);
+				System.out.println("Destination: Block No. "+n);
 				queue.add(new Path(0, a, ""));
 				setTrafficLights(traffic, start_time, orig_graph);
 				Congestion vehicle = dijkstra(n, queue, dist);
