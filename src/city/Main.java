@@ -393,8 +393,7 @@ public class Main extends Canvas implements ActionListener{
 			return Long.parseLong(next());
 		}
 
-		double nextDouble()
-		{
+		double nextDouble() {
 			return Double.parseDouble(next());
 		}
 
