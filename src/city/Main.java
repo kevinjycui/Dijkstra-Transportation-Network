@@ -25,7 +25,7 @@ import javax.swing.Timer;
 
 public class Main extends Canvas implements ActionListener{
 
-	Timer tm = new Timer(15, this);
+	Timer tm = new Timer(200, this);
 
 	private final static int traffic_light_delay = 13;
 	private final static int cycle_length = 120;
@@ -344,24 +344,18 @@ public class Main extends Canvas implements ActionListener{
 			g.fillOval(drawn_cars.get(car).getCurrentX()-7, drawn_cars.get(car).getCurrentY()-7, 15, 15);
 		}
 
+		tm.start();
+	}
+
+	public void actionPerformed(ActionEvent e) {
 		for (int car=0; car<drawn_cars.size(); car++) {
 			if (!drawn_cars.get(car).move()) {
 				drawn_cars.remove(car);
 				car--;
 			}
 		}
-
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		repaint();
-
-	}
-
-	public void actionPerformed(ActionEvent e) {
-
+		tm.restart();
 	}
 
 	static class FastReader {
