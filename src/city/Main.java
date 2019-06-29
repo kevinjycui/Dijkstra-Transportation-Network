@@ -15,17 +15,17 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.StringTokenizer;
 import java.util.TreeMap;
 
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
 public class Main extends Canvas implements ActionListener{
+
+	private static final long serialVersionUID = 2734582637251479574L;
 
 	Timer tm = new Timer(200, this);
 
@@ -75,6 +75,7 @@ public class Main extends Canvas implements ActionListener{
 			route = r;
 			distance = d;
 		}
+		@SuppressWarnings("unchecked")
 		public Congestion clone() {
 			return new Congestion(total, (LinkedList<Integer>) route.clone(), (LinkedList<Integer>) distance.clone());
 		}
@@ -163,8 +164,6 @@ public class Main extends Canvas implements ActionListener{
 				System.exit(0);
 			}
 		});
-
-		FastReader sc = new FastReader();
 
 		String fileName = "tokyo.txt";
 
@@ -380,51 +379,6 @@ public class Main extends Canvas implements ActionListener{
 		}
 		repaint();
 		tm.restart();
-	}
-
-	static class FastReader {
-		BufferedReader br;
-		StringTokenizer st;
-		public FastReader() {
-			br = new BufferedReader(new
-					InputStreamReader(System.in));
-		}
-
-		String next() {
-			while (st == null || !st.hasMoreElements()) {
-				try {
-					st = new StringTokenizer(br.readLine());
-				}
-				catch (IOException  e)
-				{
-					e.printStackTrace();
-				}
-			}
-			return st.nextToken();
-		}
-
-		int nextInt() {
-			return Integer.parseInt(next());
-		}
-
-		long nextLong() {
-			return Long.parseLong(next());
-		}
-
-		double nextDouble() {
-			return Double.parseDouble(next());
-		}
-
-		String nextLine() {
-			String str = "";
-			try {
-				str = br.readLine();
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
-			return str;
-		}
 	}
 
 }
