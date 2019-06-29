@@ -7,6 +7,8 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -38,6 +40,9 @@ public class Main extends Canvas implements ActionListener{
 	};
 	static ArrayList<Car> drawn_cars = new ArrayList<Car>();
 	static int [][] graph;
+
+	static int point_a = -1;
+	static int point_b = -1;
 
 	static class Path {
 		int distance;
@@ -116,6 +121,7 @@ public class Main extends Canvas implements ActionListener{
 		public boolean move() {
 			curr_x += dx;
 			curr_y += dy;
+
 			if (x <= curr_x + limit_velocity && x >= curr_x - limit_velocity && y <= curr_y + limit_velocity && y >= curr_y - limit_velocity) {
 				curr_x = x;
 				curr_y = y;
@@ -158,24 +164,6 @@ public class Main extends Canvas implements ActionListener{
 			}
 		});
 
-		/*		ArrayList<Integer> tx = new ArrayList<Integer>();
-		ArrayList<Integer> ty = new ArrayList<Integer>();
-		canvas.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				tx.add(e.getX());
-				ty.add(e.getY());
-				System.out.println();
-				for (int i=0; i<tx.size(); i++) {
-					System.out.print(tx.get(i)+", ");
-				}
-				System.out.println();
-				for (int i=0; i<ty.size(); i++) {
-					System.out.print(ty.get(i)+", ");
-				}
-				System.out.println();
-			}
-		});
-		 */
 		FastReader sc = new FastReader();
 
 		String fileName = "tokyo.txt";
@@ -210,27 +198,39 @@ public class Main extends Canvas implements ActionListener{
 
 			int start_time = (int)(System.currentTimeMillis() / 1000L);
 
-			while (true) {
-				Arrays.fill(dist, Integer.MAX_VALUE);
-				queue.clear();
-				//System.out.print("Input departing location\n>>> ");
-				int a = (int) (Math.random()*145);
-				System.out.println("Departing Location: Block No. "+a);
-				//System.out.print("Input destination\n>>> ");
-				int n = (int) (Math.random()*145);
-				System.out.println("Destination: Block No. "+n);
-				queue.add(new Path(0, a, ""));
-				setTrafficLights(traffic, start_time, orig_graph);
-				Congestion vehicle = dijkstra(n, queue, dist);
-				drawn_cars.add(new Car(vehicle, x_coord[a], y_coord[a]));
-				System.out.println(vehicle.total/1000+" km, "+vehicle.total%1000+" m");
-				System.out.println(distanceToTime(vehicle.total, limit_velocity));
-				System.out.print(a);
-				for (int i=0; i<vehicle.route.size(); i++) {
-					System.out.print(" --> "+vehicle.route.get(vehicle.route.size()-i-1));
-					System.out.print(" ("+vehicle.distance.get(vehicle.distance.size()-i-1)+" m)");					
+			canvas.addMouseListener(new MouseAdapter() {
+				boolean select_flag = false;
+
+				public void mousePressed(MouseEvent e) {
+					int mouse_x = e.getX();
+					int mouse_y = e.getY();
+					point_b = -1;
+					for (int i=0; i<x_coord.length; i++) {
+						if (x_coord[i]-13<=mouse_x && x_coord[i]+13>=mouse_x &&
+								y_coord[i]-13<=mouse_y && y_coord[i]+13>=mouse_y) {
+							point_b = i;
+							break;
+						}
+					}
+
+					if (!select_flag && point_b != -1) {
+						point_a = point_b;
+						point_b = -1;
+						select_flag = true;
+					} else {
+						setRoute(point_a, point_b, queue, dist, traffic, start_time, orig_graph);
+						point_a = -1;
+						point_b = -1;
+						select_flag = false;
+					}
+
 				}
-				System.out.println();
+			});
+
+			while (true) {
+				int a = (int) (Math.random()*145);
+				int n = (int) (Math.random()*145);
+				setRoute(a, n, queue, dist, traffic, start_time, orig_graph);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -245,6 +245,25 @@ public class Main extends Canvas implements ActionListener{
 			System.out.println("Error reading file '" + fileName + "'");                  
 		}
 
+	}
+
+	public static void setRoute(int a, int n, LinkedList<Path> queue, int [] dist, ArrayList<TrafficLight> traffic, int start_time, int [][] orig_graph) {
+		Arrays.fill(dist, Integer.MAX_VALUE);
+		queue.clear();
+		System.out.println("Departing Location: Block No. "+a);
+		System.out.println("Destination: Block No. "+n);
+		queue.add(new Path(0, a, ""));
+		setTrafficLights(traffic, start_time, orig_graph);
+		Congestion vehicle = dijkstra(n, queue, dist);
+		drawn_cars.add(new Car(vehicle, x_coord[a], y_coord[a]));
+		System.out.println(vehicle.total/1000+" km, "+vehicle.total%1000+" m");
+		System.out.println(distanceToTime(vehicle.total, limit_velocity));
+		System.out.print(a);
+		for (int i=0; i<vehicle.route.size(); i++) {
+			System.out.print(" --> "+vehicle.route.get(vehicle.route.size()-i-1));
+			System.out.print(" ("+vehicle.distance.get(vehicle.distance.size()-i-1)+" m)");					
+		}
+		System.out.println();
 	}
 
 	private static String distanceToTime(int d, double v) {
@@ -337,6 +356,11 @@ public class Main extends Canvas implements ActionListener{
 					g.drawLine(x_coord[i], y_coord[i], x_coord[j], y_coord[j]);
 				}
 			}
+		}
+
+		g.setColor(Color.RED);
+		if (point_a != -1) {
+			g.drawOval(x_coord[point_a]-13, y_coord[point_a]-13, 25, 25);
 		}
 
 		for (int car=0; car<drawn_cars.size(); car++) {
